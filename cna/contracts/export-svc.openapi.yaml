@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: BookStack Export Service API
+  version: 2.0.0
+  description: Microservicio de exportación de páginas y libros (S3)
+paths:
+  /v2/exports:
+    post:
+      summary: Solicitar un trabajo de exportación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page_id:
+                  type: integer
+                format:
+                  type: string
+                  enum: [pdf, markdown]
+            example:
+              page_id: 42
+              format: "pdf"
+      responses:
+        '202':
+          description: Trabajo de exportación aceptado y en cola (Async)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+              example:
+                job_id: "7b12e34f-9a81-4321-b123-abcdef123456"
+                status: "queued"
+        '400':
+          description: Formato o ID de página inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Formato de exportación no soportado"
+        '503':
+          description: Cola de exportación no disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Redis/Broker de exportación no disponible"
+  /v2/exports/{job_id}:
+    get:
+      summary: Consultar estado de exportación y obtener URL prefirmada
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Estado del trabajo y URL de descarga si está completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                  status:
+                    type: string
+                  download_url:
+                    type: string
+                    format: uri
+              example:
+                job_id: "7b12e34f-9a81-4321-b123-abcdef123456"
+                status: "done"
+                download_url: "https://minio.local/exports/doc-42.pdf?token=prefirmado"
+        '404':
+          description: Trabajo de exportación no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Job ID no encontrado"
+        '503':
+          description: Almacenamiento o servicio no disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "MinIO o base de datos de estados no disponible"

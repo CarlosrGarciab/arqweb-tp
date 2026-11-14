@@ -1,0 +1,59 @@
+asyncapi: 3.0.0
+info:
+  title: BookStack Cloud Native Event Contracts
+  version: 2.0.0
+  description: Esquema estandarizado de eventos asíncronos para el broker de mensajes (NATS/RabbitMQ).
+
+channels:
+  bookstackPageEvents:
+    address: bookstack.page.{action}
+    messages:
+      pageEvent:
+        $ref: '#/components/messages/EventEnvelope'
+
+components:
+  messages:
+    EventEnvelope:
+      summary: Sobre estándar de evento en la plataforma
+      payload:
+        type: object
+        required:
+          - event_id
+          - type
+          - version
+          - occurred_at
+          - request_id
+          - payload
+        properties:
+          event_id:
+            type: string
+            format: uuid
+            example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+          type:
+            type: string
+            example: "bookstack.page.updated"
+          version:
+            type: string
+            example: "2.0"
+          occurred_at:
+            type: string
+            format: date-time
+            example: "2026-11-10T18:10:00Z"
+          request_id:
+            type: string
+            example: "req-cna-8f3a921b"
+          payload:
+            type: object
+            required:
+              - id
+              - name
+            properties:
+              id:
+                type: integer
+                example: 42
+              name:
+                type: string
+                example: "Documentación de Arquitectura CNA"
+              book_id:
+                type: integer
+                example: 10

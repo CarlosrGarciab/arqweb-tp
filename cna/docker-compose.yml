@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  search-svc:
+    image: search-svc:1.0.0
+    container_name: search-svc
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - BOOKSTACK_API_URL=https://bookstack.miempresapro.com/api
+    extra_hosts:
+      - "bookstack.miempresapro.com:192.168.100.213"
+    ports:
+      - "8001:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  audit-svc:
+    image: audit-svc:1.0.0
+    container_name: audit-svc
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  export-svc:
+    image: export-svc:1.0.0
+    container_name: export-svc
+    restart: unless-stopped
+    ports:
+      - "8003:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  event-bridge:
+    image: event-bridge:1.0.0
+    container_name: event-bridge
+    restart: unless-stopped
+    environment:
+      - SHARED_WEBHOOK_TOKEN=mi-token-secreto-seguro
+    ports:
+      - "8004:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

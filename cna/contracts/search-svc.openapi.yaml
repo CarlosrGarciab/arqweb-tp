@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: Search Service API (S1)
+  version: 2.0.0
+  description: API REST síncrona para la búsqueda de texto completo sobre documentos de BookStack.
+
+servers:
+  - url: https://api.bookstack.local/v2
+    description: API Gateway principal
+
+paths:
+  /search:
+    get:
+      summary: Buscar documentos e índices
+      operationId: searchDocuments
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda
+          schema:
+            type: string
+            minLength: 1
+          example: "nginx"
+      responses:
+        '200':
+          description: Búsqueda realizada con éxito
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+              description: ID de correlación único
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - query
+                  - results
+                  - count
+                properties:
+                  query:
+                    type: string
+                    example: "nginx"
+                  count:
+                    type: integer
+                    example: 1
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 42
+                        title:
+                          type: string
+                          example: "Configuración de Nginx Edge"
+                        url:
+                          type: string
+                          example: "https://bookstack.miempresapro.com/books/10/page/42"
+        '400':
+          description: Parámetro de búsqueda inválido
+        '503':
+          description: Servicio temporalmente no disponible (vía API Gateway)
+          content:
+            application/json:
+              example:
+                error: "Service Unavailable"
+                code: 503
+
+  /healthz:
+    get:
+      summary: Healthcheck de liveness
+      responses:
+        '200':
+          description: Servicio vivo
+
+  /readyz:
+    get:
+      summary: Healthcheck de readiness
+      responses:
+        '200':
+          description: Servicio y dependencias listas

@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: BookStack Audit Service API
+  version: 2.0.0
+  description: Microservicio de auditoría y trazabilidad de eventos (S2)
+paths:
+  /v2/audit:
+    get:
+      summary: Consultar registros de auditoría
+      parameters:
+        - name: entity
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Tipo de entidad (ej. page, book)
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID de la entidad
+      responses:
+        '200':
+          description: Lista de registros de auditoría obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    audit_id:
+                      type: string
+                      format: uuid
+                    action:
+                      type: string
+                    user_id:
+                      type: integer
+                    occurred_at:
+                      type: string
+                      format: date-time
+              example:
+                - audit_id: "c9a63214-8f12-4211-9a21-123456789abc"
+                  action: "page.updated"
+                  user_id: 1
+                  occurred_at: "2026-11-10T22:00:00Z"
+        '400':
+          description: Parámetros de consulta inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Parámetro entity inválido o faltante"
+        '404':
+          description: Registros no encontrados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "No se encontraron auditorías para la entidad solicitada"
+        '503':
+          description: Servicio de auditoría no disponible temporalmente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Base de datos de auditoría no disponible"
